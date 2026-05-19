@@ -5,6 +5,8 @@ import joblib
 import json
 import base64
 import io
+import warnings
+warnings.filterwarnings("ignore")
 
 # ─────────────────────────────────────────
 # Configuração da página
@@ -20,10 +22,12 @@ st.set_page_config(
 # ─────────────────────────────────────────
 @st.cache_resource
 def carregar_artefatos():
-    with open("model_artifacts/best_model.b64", "r") as f:
-        pipeline = joblib.load(io.BytesIO(base64.b64decode(f.read())))
-    with open("model_artifacts/label_encoder.b64", "r") as f:
-        label_enc = joblib.load(io.BytesIO(base64.b64decode(f.read())))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        with open("model_artifacts/best_model.b64", "r") as f:
+            pipeline = joblib.load(io.BytesIO(base64.b64decode(f.read())))
+        with open("model_artifacts/label_encoder.b64", "r") as f:
+            label_enc = joblib.load(io.BytesIO(base64.b64decode(f.read())))
     with open("model_artifacts/model_meta.json", "r", encoding="utf-8") as f:
         meta = json.load(f)
     return pipeline, label_enc, meta
@@ -31,7 +35,7 @@ def carregar_artefatos():
 try:
     pipeline, label_enc, meta = carregar_artefatos()
     artefatos_ok = True
-except Exception:
+except FileNotFoundError:
     artefatos_ok = False
 
 # ─────────────────────────────────────────
@@ -247,12 +251,14 @@ if st.button("🔍 Realizar Diagnóstico", type="primary", use_container_width=T
         ch2o=ch2o, scc=scc, faf=faf, tue=tue, calc=calc, mtrans=mtrans
     )
 
-    X_input    = montar_entrada(inputs)
-    pred_enc   = pipeline.predict(X_input)[0]
-    pred_class = label_enc.inverse_transform([pred_enc])[0]
-    pred_proba = pipeline.predict_proba(X_input)[0]
-    confianca  = pred_proba.max() * 100
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        X_input    = montar_entrada(inputs)
+        pred_enc   = pipeline.predict(X_input)[0]
+        pred_class = label_enc.inverse_transform([pred_enc])[0]
+        pred_proba = pipeline.predict_proba(X_input)[0]
 
+    confianca  = pred_proba.max() * 100
     cor   = COR_CLASSE.get(pred_class, "#607d8b")
     icone = ICONE_CLASSE.get(pred_class, "⚪")
     label = TRADUCAO_CLASSE.get(pred_class, pred_class)
