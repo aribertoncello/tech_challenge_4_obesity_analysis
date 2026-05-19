@@ -70,6 +70,41 @@ ICONE_CLASSE = {
 }
 
 # ─────────────────────────────────────────
+# Opções descritivas para as escalas
+# ─────────────────────────────────────────
+OPCOES_FCVC = {
+    0: "0 — Nunca como vegetais",
+    1: "1 — Às vezes como vegetais",
+    2: "2 — Frequentemente como vegetais",
+    3: "3 — Sempre como vegetais em todas as refeições",
+}
+OPCOES_NCP = {
+    1: "1 — Uma refeição por dia",
+    2: "2 — Duas refeições por dia",
+    3: "3 — Três refeições por dia",
+    4: "4 — Quatro refeições por dia",
+    5: "5 — Cinco ou mais refeições por dia",
+}
+OPCOES_CH2O = {
+    0: "0 — Menos de 1 litro por dia",
+    1: "1 — Entre 1 e 2 litros por dia",
+    2: "2 — Entre 2 e 3 litros por dia",
+    3: "3 — Mais de 3 litros por dia",
+}
+OPCOES_FAF = {
+    0: "0 — Não pratico atividade física",
+    1: "1 — 1 a 2 dias por semana",
+    2: "2 — 2 a 4 dias por semana",
+    3: "3 — 4 a 5 dias por semana (quase todos os dias)",
+}
+OPCOES_TUE = {
+    0: "0 — Até 2 horas por dia",
+    1: "1 — Entre 3 e 5 horas por dia",
+    2: "2 — Entre 5 e 8 horas por dia",
+    3: "3 — Mais de 8 horas por dia",
+}
+
+# ─────────────────────────────────────────
 # Funções de feature engineering
 # ─────────────────────────────────────────
 def calcular_age_group(age: float) -> str:
@@ -212,13 +247,22 @@ st.subheader("🥗 Hábitos Alimentares e de Saúde")
 col3, col4 = st.columns(2)
 
 with col3:
-    fcvc = st.slider("Frequência de consumo de vegetais (0–3)", 0, 3, 2)
-    ncp  = st.slider("Refeições principais por dia (1–5)", 1, 5, 3)
-    ch2o = st.slider("Litros de água por dia (0–3)", 0, 3, 2)
+    fcvc_label = st.selectbox("Com que frequência come vegetais?", list(OPCOES_FCVC.values()))
+    fcvc = [k for k, v in OPCOES_FCVC.items() if v == fcvc_label][0]
+
+    ncp_label = st.selectbox("Quantas refeições principais faz por dia?", list(OPCOES_NCP.values()))
+    ncp = [k for k, v in OPCOES_NCP.items() if v == ncp_label][0]
+
+    ch2o_label = st.selectbox("Quanta água bebe por dia?", list(OPCOES_CH2O.values()))
+    ch2o = [k for k, v in OPCOES_CH2O.items() if v == ch2o_label][0]
 
 with col4:
-    faf  = st.slider("Dias de atividade física por semana (0–3)", 0, 3, 1)
-    tue  = st.slider("Horas em dispositivos tecnológicos por dia (0–3)", 0, 3, 1)
+    faf_label = st.selectbox("Com que frequência pratica atividade física?", list(OPCOES_FAF.values()))
+    faf = [k for k, v in OPCOES_FAF.items() if v == faf_label][0]
+
+    tue_label = st.selectbox("Quanto tempo usa dispositivos tecnológicos por dia?", list(OPCOES_TUE.values()))
+    tue = [k for k, v in OPCOES_TUE.items() if v == tue_label][0]
+
     calc = st.selectbox("Frequência do consumo de álcool",
         ["no", "Sometimes", "Frequently", "Always"],
         format_func=lambda x: {
@@ -302,14 +346,14 @@ if st.button("🔍 Realizar Diagnóstico", type="primary", use_container_width=T
             "Idade"                     : f"{age} anos ({calcular_age_group(age)})",
             "Histórico familiar"        : "Sim" if family_history == "yes" else "Não",
             "Alimentos calóricos freq." : "Sim" if favc == "yes" else "Não",
-            "Vegetais (0–3)"            : fcvc,
-            "Refeições/dia"             : ncp,
+            "Vegetais"                  : OPCOES_FCVC[fcvc],
+            "Refeições/dia"             : OPCOES_NCP[ncp],
             "Come entre refeições"      : caec,
             "Fuma"                      : "Sim" if smoke == "yes" else "Não",
-            "Água/dia (0–3)"            : ch2o,
+            "Água/dia"                  : OPCOES_CH2O[ch2o],
             "Monitora calorias"         : "Sim" if scc == "yes" else "Não",
-            "Atividade física (0–3)"    : faf,
-            "Tempo em telas (0–3)"      : tue,
+            "Atividade física"          : OPCOES_FAF[faf],
+            "Tempo em telas"            : OPCOES_TUE[tue],
             "Álcool"                    : calc,
             "Transporte"                : mtrans,
         }
